@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parts/Material Requisition Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        input:invalid, select:invalid {
+            border-color: red;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 min-h-screen">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold text-center mb-6 text-blue-600">Parts/Material Requisition Form</h1>
+        
+        <form id="requisitionForm" class="space-y-4">
+            <!-- Basic Information -->
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Requisition Type</label>
+                    <select required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-2">
+                        <option value="">Select Type</option>
+                        <option value="urgent">Urgent</option>
+                        <option value="normal">Normal</option>
+                        <option value="planned">Planned</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Area/Machine</label>
+                    <input type="text" required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Date</label>
+                    <input type="date" required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Quotation Reference</label>
+                    <input type="text" class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-2">
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-full" id="itemsTable">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-4 py-2 text-left">Sr No</th>
+                            <th class="px-4 py-2 text-left">Item No</th>
+                            <th class="px-4 py-2 text-left">Description</th>
+                            <th class="px-4 py-2 text-left">Qty</th>
+                            <th class="px-4 py-2 text-left">S/D</th>
+                            <th class="px-4 py-2 text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsTableBody">
+                        <!-- Initial row will be added by JavaScript -->
+                    </tbody>
+                </table>
+                <button type="button" id="addRow" class="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    <i class="bi bi-plus-circle"></i> Add Row
+                </button>
+            </div>
+
+            <!-- Approval Information -->
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Requestor's Name</label>
+                    <input type="text" required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Direct Manager's Name</label>
+                    <input type="text" required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Purchasing Manager's Name</label>
+                    <input type="text" required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Purchasing Department</label>
+                    <input type="text" required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-2">
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-6">
+                <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
+                    Submit Requisition
+                </button>
+            </div>
+        </form>
+
+        <div class="loading" id="loadingSpinner">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+    </div>
+
+    <script>
+        let rowCounter = 1;
+
+        function createNewRow() {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="px-4 py-2">${rowCounter}</td>
+                <td class="px-4 py-2"><input type="text" required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-1"></td>
+                <td class="px-4 py-2"><input type="text" required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-1"></td>
+                <td class="px-4 py-2"><input type="number" required min="1" class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-1"></td>
+                <td class="px-4 py-2">
+                    <select required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-1">
+                        <option value="S">Stock</option>
+                        <option value="D">Direct</option>
+                    </select>
+                </td>
+                <td class="px-4 py-2">
+                    <button type="button" onclick="deleteRow(this)" class="text-red-500 hover:text-red-700">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+            return tr;
+        }
+
+        function deleteRow(button) {
+            const row = button.closest('tr');
+            row.remove();
+            updateSerialNumbers();
+        }
+
+        function updateSerialNumbers() {
+            const rows = document.querySelectorAll('#itemsTableBody tr');
+            rows.forEach((row, index) => {
+                row.cells[0].textContent = index + 1;
+            });
+            rowCounter = rows.length + 1;
+        }
+
+        document.getElementById('addRow').addEventListener('click', () => {
+            document.getElementById('itemsTableBody').appendChild(createNewRow());
+            rowCounter++;
+        });
+
+        document.getElementById('requisitionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            loadingSpinner.style.display = 'block';
+
+            try {
+                // Simulate form submission and approval workflow
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                alert('Requisition submitted successfully! Approval emails will be sent to the respective managers.');
+                
+                // Reset form
+                e.target.reset();
+                document.getElementById('itemsTableBody').innerHTML = '';
+                rowCounter = 1;
+                document.getElementById('itemsTableBody').appendChild(createNewRow());
+                
+            } catch (error) {
+                alert('An error occurred while submitting the requisition. Please try again.');
+            } finally {
+                loadingSpinner.style.display = 'none';
+            }
+        });
+
+        // Add initial row
+        document.getElementById('itemsTableBody').appendChild(createNewRow());
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
